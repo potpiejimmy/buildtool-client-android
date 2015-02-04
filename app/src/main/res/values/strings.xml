@@ -6,5 +6,15 @@
     <string name="action_settings">Settings</string>
     <string name="loading">Loading&#8230;</string>
     <string name="action_refresh">Refresh</string>
+    <string name="action_delete">Delete</string>
+    <string name="drawer_open">Open Drawer</string>
+    <string name="drawer_close">Close Drawer</string>
+
+    <string-array name="drawer_items">
+        <item>Resynch Current Sandbox</item>
+        <item>Build Project</item>
+        <item>Deploy</item>
+        <item>Install DB</item>
+    </string-array>
 
 </resources>
