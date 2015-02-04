@@ -1,6 +1,8 @@
 package com.doogetha.client.android.buildtool;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.v4.widget.DrawerLayout;
@@ -15,6 +17,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -139,7 +142,12 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
             }
         });
 
-        refresh();
+        String unitId = ((Application)getApplication()).getUnitId();
+        if (unitId == null || unitId.length() == 0) {
+            enterUnitId();
+        } else {
+            refresh();
+        }
     }
 
     @Override
@@ -175,9 +183,11 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            enterUnitId();
             return true;
         } else if (id == R.id.action_refresh) {
             refresh();
+            return true;
         }
 
         return super.onOptionsItemSelected(item);
@@ -187,6 +197,24 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
     public void onItemClick(AdapterView<?> parent, View view, int position, long id)
     {
         //editItem(data.getItem(position));
+    }
+
+    protected void enterUnitId() {
+        final EditText input = new EditText(this);
+        String unitId = ((Application)getApplication()).getUnitId();
+        if (unitId != null) input.setText(unitId);
+        new AlertDialog.Builder(this)
+                .setMessage("Enter your host ID:")
+                .setView(input)
+                .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        ((Application)getApplication()).setUnitId(input.getText().toString().trim());
+                        refresh();
+                    }
+                }).setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+            }
+        }).show();
     }
 
     @Override

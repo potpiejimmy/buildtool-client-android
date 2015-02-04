@@ -1,5 +1,7 @@
 package com.doogetha.client.android.buildtool;
 
+import android.content.SharedPreferences;
+
 import com.wincor.bcon.framework.android.util.RestResourceAccessor;
 
 /**
@@ -11,14 +13,16 @@ import com.wincor.bcon.framework.android.util.RestResourceAccessor;
 public class Application extends android.app.Application {
 	
 	/** sample URL pointing to the server's REST resource of "SampleEntity" */
-	public final static String URL = "http://www.doogetha.com/buildtool/res/jobs/w7-deffm0287/";
+	public final static String URL = "http://www.doogetha.com/buildtool/res/jobs/";
 
 	/** REST resource accessor instance */
 	private RestResourceAccessor req = null;
-	
-	@Override
+
+    private SharedPreferences preferences = null;
+
+    @Override
 	public void onCreate() {
-        req = new RestResourceAccessor(URL);
+        req = new RestResourceAccessor(URL + getUnitId());
         // set general HTTP request parameters (just an example)
     	req.getWebRequest().setParam("max", "255");
 	}
@@ -33,4 +37,19 @@ public class Application extends android.app.Application {
 		return req;
 	}
 
+    public SharedPreferences getPreferences() {
+        if (preferences == null) {
+            preferences = getSharedPreferences("buildtoolprefs", MODE_PRIVATE);
+        }
+        return preferences;
+    }
+
+    public String getUnitId() {
+        return getPreferences().getString("unitId", null);
+    }
+
+    public void setUnitId(String unitId) {
+        getPreferences().edit().putString("unitId", unitId).commit();
+        req.setBaseUrl(URL + unitId);
+    }
 }
