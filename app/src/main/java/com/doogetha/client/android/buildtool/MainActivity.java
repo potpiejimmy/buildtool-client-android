@@ -16,6 +16,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -64,8 +65,26 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
 
                 TextView title = (TextView) convertView.findViewById(R.id.item_title);
                 TextView subtitle = (TextView) convertView.findViewById(R.id.item_subtitle);
+                ProgressBar progbar = (ProgressBar) convertView.findViewById(R.id.item_progressbar);
+
+                String state = item.optString("state");
                 title.setText(item.optString("name"));
-                subtitle.setText("State: " + item.optString("state"));
+                subtitle.setText(state);
+
+                if (Character.isDigit(state.charAt(0))) {
+                    progbar.setVisibility(View.VISIBLE);
+                    progbar.setIndeterminate(false);
+                    try {
+                        progbar.setProgress(Integer.parseInt(state));
+                    } catch (NumberFormatException e) {
+                        progbar.setProgress(0);
+                    }
+                } else if (state.toLowerCase().startsWith("done") || state.toLowerCase().startsWith("error")) {
+                    progbar.setVisibility(View.GONE);
+                } else {
+                    progbar.setVisibility(View.VISIBLE);
+                    progbar.setIndeterminate(true);
+                }
 
                 return convertView;
             }
