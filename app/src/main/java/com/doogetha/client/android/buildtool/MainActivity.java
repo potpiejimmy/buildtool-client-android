@@ -41,6 +41,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
 
     /** Holds the list view UI element */
     private ListView mMainList = null;
+    private View mDrawer = null;
     private ListView mDrawerList = null;
     private DrawerLayout mDrawerLayout = null;
 
@@ -107,6 +108,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
         // APPLICATION DRAWER
 
         mTitle = getTitle();
+        mDrawer = findViewById(R.id.left_drawer);
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout,
                 R.string.drawer_open, R.string.drawer_close) {
@@ -136,7 +138,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
 
         // APPLICATION DRAWER ITEMS
 
-        mDrawerList = (ListView) findViewById(R.id.left_drawer);
+        mDrawerList = (ListView) findViewById(R.id.left_drawer_list);
 
         String[] items = getResources().getStringArray(R.array.drawer_items);
         // Set the adapter for the list view
@@ -330,7 +332,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
         @Override
         public void doneOk(JSONObject result) {
             mDrawerList.setItemChecked(position, false);
-            mDrawerLayout.closeDrawer(mDrawerList);
+            mDrawerLayout.closeDrawer(mDrawer);
             refresh();
         }
 
