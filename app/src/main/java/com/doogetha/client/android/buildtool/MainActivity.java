@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -28,6 +29,9 @@ import com.wincor.bcon.framework.android.util.RestResourceAccessor;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import java.util.Timer;
+import java.util.TimerTask;
 
 
 public class MainActivity extends ActionBarActivity implements AdapterView.OnItemClickListener {
@@ -77,12 +81,13 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
                 if (Character.isDigit(state.charAt(0))) {
                     progbar.setVisibility(View.VISIBLE);
                     progbar.setIndeterminate(false);
+                    subtitle.setText(state + " %");
                     try {
                         progbar.setProgress(Integer.parseInt(state));
                     } catch (NumberFormatException e) {
                         progbar.setProgress(0);
                     }
-                } else if (state.toLowerCase().startsWith("done") || state.toLowerCase().startsWith("error")) {
+                } else if (isJobDone(item)) {
                     progbar.setVisibility(View.GONE);
                 } else {
                     progbar.setVisibility(View.VISIBLE);
@@ -109,20 +114,22 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
             /** Called when a drawer has settled in a completely closed state. */
             public void onDrawerClosed(View view) {
                 super.onDrawerClosed(view);
-                getSupportActionBar().setTitle(mTitle);
                 invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
             }
 
             /** Called when a drawer has settled in a completely open state. */
             public void onDrawerOpened(View drawerView) {
                 super.onDrawerOpened(drawerView);
-                getSupportActionBar().setTitle(mTitle);
                 invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
             }
         };
 
-        // activate the drawer toggle icon
+        // activate the drawer toggle icon and app icon
+        getSupportActionBar().setTitle(R.string.actionbar_title);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
+        getSupportActionBar().setLogo(R.drawable.buildtool_appicon);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayUseLogoEnabled(true);
 
         // Set the drawer toggle as the DrawerListener
         mDrawerLayout.setDrawerListener(mDrawerToggle);
@@ -148,6 +155,11 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
         } else {
             refresh();
         }
+    }
+
+    protected static boolean isJobDone(JSONObject job) {
+        String state = job.optString("state");
+        return (state.toLowerCase().startsWith("done") || state.toLowerCase().startsWith("error"));
     }
 
     @Override
@@ -239,9 +251,12 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
     /**
      * Asynchronously refreshes the list data
      */
-    protected void refresh()
-    {
-        dataLoader.go(getString(R.string.loading), true);
+    protected void refresh() {
+        refresh(true);
+    }
+
+    protected void refresh(boolean showDialog) {
+        dataLoader.go(getString(R.string.loading), showDialog);
     }
 
     /**
@@ -249,6 +264,8 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
      */
     protected class DataLoader extends AsyncUITask<JSONArray>
     {
+        private final Handler handler = new Handler();
+
         public DataLoader() { super(MainActivity.this); }
 
         @Override
@@ -260,7 +277,25 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
         @Override
         public void doneOk(JSONArray result) {
             data.clear();
-            for (int i=0; i<result.length(); i++) data.add(result.optJSONObject(i));
+            boolean allDone = true;
+            for (int i=0; i<result.length(); i++) {
+                JSONObject job = result.optJSONObject(i);
+                data.add(job);
+                if (!isJobDone(job)) allDone = false;
+            }
+            if (!allDone) {
+                new Timer().schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                refresh(false);
+                            }
+                        });
+                    }
+                }, 10000);
+            }
         }
 
         @Override
