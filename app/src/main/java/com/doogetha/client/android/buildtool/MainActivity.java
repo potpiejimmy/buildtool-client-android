@@ -3,7 +3,9 @@ package com.doogetha.client.android.buildtool;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.res.Configuration;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.widget.DrawerLayout;
@@ -238,6 +240,9 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             enterUnitId();
+            return true;
+        } else if (id == R.id.action_update) {
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.doogetha.com/download/buildtool.apk")));
             return true;
         } else if (id == R.id.action_refresh) {
             refresh();
