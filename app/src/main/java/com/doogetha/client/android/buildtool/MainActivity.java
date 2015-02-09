@@ -142,7 +142,47 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
 
         String[] items = getResources().getStringArray(R.array.drawer_items);
         // Set the adapter for the list view
-        mDrawerList.setAdapter(new ArrayAdapter<String>(this, R.layout.drawer_list_item, items));
+        mDrawerList.setAdapter(new ArrayAdapter<String>(this, R.layout.drawer_list_item, items) {
+            @Override
+            public View getView(int position, View convertView, ViewGroup viewGroup) {
+                if (convertView == null) {
+                    LayoutInflater inflater = (LayoutInflater) getContext()
+                            .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                    if (getItemViewType(position) == 0) {
+                        convertView = inflater.inflate(R.layout.drawer_list_item, null);
+                    } else {
+                        convertView = inflater.inflate(R.layout.drawer_list_separator, null);
+                    }
+                }
+
+                TextView title = null;
+                String label = getResources().getStringArray(R.array.drawer_items)[position];
+                if (getItemViewType(position) == 0) {
+                    title = (TextView) convertView;
+                } else {
+                    title = (TextView) convertView.findViewById(R.id.sepTitle);
+                    label = label.substring(1);
+                }
+                title.setText(label);
+
+                return convertView;
+            }
+
+            @Override
+            public int getViewTypeCount(){
+                return 2; // normal item and separator
+            }
+
+            @Override
+            public int getItemViewType(int position) {
+                return getResources().getStringArray(R.array.drawer_items)[position].startsWith("-") ? 1 : 0;
+            }
+
+            @Override
+            public boolean isEnabled(int position) {
+                return getItemViewType(position) == 0;
+            }
+        });
         // Set the list's click listener
         mDrawerList.setOnItemClickListener(new ListView.OnItemClickListener() {
             @Override

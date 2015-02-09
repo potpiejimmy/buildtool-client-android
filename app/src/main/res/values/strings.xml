@@ -15,19 +15,23 @@
     <string name="cancel">Cancel</string>
 
     <string-array name="drawer_items">
+        <item>-Build</item>
         <item>Resynch Current Sandbox</item>
         <item>Build Project</item>
+        <item>Execute doEverything</item>
+        <item>-Database</item>
         <item>Create Database HKG0</item>
         <item>Populate Database HKG0</item>
         <item>DevSystemInit HKG0</item>
         <item>Disable Rops HKG0</item>
-        <item>Deploy Server HKG0</item>
-        <item>Deploy Rops HKG0</item>
-        <item>Deploy Rars HKG0</item>
         <item>Create Database HKG1</item>
         <item>Populate Database HKG1</item>
         <item>DevSystemInit HKG1</item>
         <item>Disable Rops HKG1</item>
+        <item>-Deploy</item>
+        <item>Deploy Server HKG0</item>
+        <item>Deploy Rops HKG0</item>
+        <item>Deploy Rars HKG0</item>
         <item>Deploy Server HKG1</item>
         <item>Deploy Rars HKG1</item>
         <item>Deploy KKO</item>

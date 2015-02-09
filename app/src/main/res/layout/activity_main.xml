@@ -29,16 +29,6 @@
         android:layout_gravity="start"
         android:orientation="vertical">
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceLarge"
-            android:gravity="left"
-            android:padding="16dp"
-            android:text="@string/drawer_title"
-            android:background="@android:color/black"
-            android:textColor="@android:color/darker_gray"/>
-
         <ListView
             android:id="@+id/left_drawer_list"
             android:layout_width="match_parent"
