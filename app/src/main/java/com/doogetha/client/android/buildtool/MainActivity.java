@@ -18,9 +18,12 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -46,6 +49,11 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
     private View mDrawer = null;
     private ListView mDrawerList = null;
     private DrawerLayout mDrawerLayout = null;
+
+    /* refresh animation */
+    private MenuItem refreshMenuItem = null;
+    private ImageView spinningRefreshView = null;
+    private Animation spinningRefreshAnim = null;
 
     /** Inner class used for asynchronous loading of data */
     private DataLoader dataLoader = null;
@@ -118,13 +126,13 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
             /** Called when a drawer has settled in a completely closed state. */
             public void onDrawerClosed(View view) {
                 super.onDrawerClosed(view);
-                invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
+                //invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
             }
 
             /** Called when a drawer has settled in a completely open state. */
             public void onDrawerOpened(View drawerView) {
                 super.onDrawerOpened(drawerView);
-                invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
+                //invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
             }
         };
 
@@ -193,6 +201,19 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
             }
         });
 
+        // -------- REFRESH ANIM ----------------
+
+        /* Attach a rotating ImageView to the refresh item as an ActionView */
+        LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        spinningRefreshView = (ImageView) inflater.inflate(R.layout.refresh_action_view, null);
+
+        spinningRefreshAnim = AnimationUtils.loadAnimation(this, R.anim.clockwise_refresh);
+        spinningRefreshAnim.setRepeatCount(Animation.INFINITE);
+
+        // --------------------------------------
+    }
+
+    protected void startupInit() {
         String unitId = ((Application)getApplication()).getUnitId();
         if (unitId == null || unitId.length() == 0) {
             enterUnitId();
@@ -223,6 +244,8 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
+        refreshMenuItem = menu.findItem(R.id.action_refresh);
+        startupInit();
         return true;
     }
 
@@ -303,6 +326,9 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
     }
 
     protected void refresh(boolean showDialog) {
+        spinningRefreshView.clearAnimation();
+        spinningRefreshView.startAnimation(spinningRefreshAnim);
+        refreshMenuItem.setActionView(spinningRefreshView);
         dataLoader.go(getString(R.string.loading), showDialog);
     }
 
@@ -342,6 +368,9 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
                         });
                     }
                 }, 10000);
+            } else {
+                spinningRefreshView.clearAnimation();
+                refreshMenuItem.setActionView(null);
             }
         }
 
