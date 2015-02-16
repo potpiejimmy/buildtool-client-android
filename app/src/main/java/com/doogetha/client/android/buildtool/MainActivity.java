@@ -35,11 +35,18 @@ import com.wincor.bcon.framework.android.util.RestResourceAccessor;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
 
 public class MainActivity extends ActionBarActivity implements AdapterView.OnItemClickListener {
+
+    private final static DateFormat LIST_DATE_FORMATTER_LONG  = new SimpleDateFormat("MMM dd, HH:mm");
+    private final static DateFormat LIST_DATE_FORMATTER_SHORT = new SimpleDateFormat("HH:mm");
 
     /** Holds the list's data */
     private ArrayAdapter<JSONObject> data = null;
@@ -54,6 +61,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
     private MenuItem refreshMenuItem = null;
     private ImageView spinningRefreshView = null;
     private Animation spinningRefreshAnim = null;
+    private boolean isAutoRefreshTimerRunning = false;
 
     /** Inner class used for asynchronous loading of data */
     private DataLoader dataLoader = null;
@@ -83,11 +91,13 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
 
                 TextView title = (TextView) convertView.findViewById(R.id.item_title);
                 TextView subtitle = (TextView) convertView.findViewById(R.id.item_subtitle);
+                TextView datetime = (TextView) convertView.findViewById(R.id.item_datetime);
                 ProgressBar progbar = (ProgressBar) convertView.findViewById(R.id.item_progressbar);
 
                 String state = item.optString("state");
                 title.setText(item.optString("name"));
                 subtitle.setText(state);
+                datetime.setText(formatListItemDateTime(item.optLong("lastmodified")));
 
                 if (Character.isDigit(state.charAt(0))) {
                     progbar.setVisibility(View.VISIBLE);
@@ -268,7 +278,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
             startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.doogetha.com/download/buildtool.apk")));
             return true;
         } else if (id == R.id.action_refresh) {
-            refresh();
+            refresh(false);
             return true;
         }
 
@@ -332,6 +342,18 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
         dataLoader.go(getString(R.string.loading), showDialog);
     }
 
+    protected static String formatListItemDateTime(long time) {
+        Calendar today = Calendar.getInstance();
+        Calendar itemTime = Calendar.getInstance();
+        itemTime.setTimeInMillis(time);
+        if (today.get(Calendar.DAY_OF_YEAR) == itemTime.get(Calendar.DAY_OF_YEAR) &&
+            today.get(Calendar.YEAR) == itemTime.get(Calendar.YEAR))
+            /* use short format if today */
+            return LIST_DATE_FORMATTER_SHORT.format(itemTime.getTime());
+        else
+            return LIST_DATE_FORMATTER_LONG.format(itemTime.getTime());
+    }
+
     /**
      * Inner class used for asynchronous loading of data from the server.
      */
@@ -357,17 +379,21 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
                 if (!isJobDone(job)) allDone = false;
             }
             if (!allDone) {
-                new Timer().schedule(new TimerTask() {
-                    @Override
-                    public void run() {
-                        handler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                refresh(false);
-                            }
-                        });
-                    }
-                }, 10000);
+                if (!isAutoRefreshTimerRunning) {
+                    isAutoRefreshTimerRunning = true;
+                    new Timer().schedule(new TimerTask() {
+                        @Override
+                        public void run() {
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    isAutoRefreshTimerRunning = false;
+                                    refresh(false);
+                                }
+                            });
+                        }
+                    }, 10000);
+                }
             } else {
                 spinningRefreshView.clearAnimation();
                 refreshMenuItem.setActionView(null);
