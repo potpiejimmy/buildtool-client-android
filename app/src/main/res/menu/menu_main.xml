@@ -11,6 +11,10 @@
         android:title="@string/action_settings"
         android:orderInCategory="100"
         app:showAsAction="never" />
+    <item android:id="@+id/action_clearlist"
+        android:title="@string/action_clearlist"
+        android:orderInCategory="100"
+        app:showAsAction="never" />
     <item android:id="@+id/action_update"
         android:title="@string/action_update"
         android:orderInCategory="100"

@@ -12,30 +12,28 @@ import com.wincor.bcon.framework.android.util.RestResourceAccessor;
  */
 public class Application extends android.app.Application {
 	
-	/** sample URL pointing to the server's REST resource of "SampleEntity" */
-	public final static String URL = "http://www.doogetha.com/buildtool/res/jobs/";
+	public final static String URL_JOBS   = "http://www.doogetha.com/buildtool/res/jobs/";
+    public final static String URL_PARAMS = "http://www.doogetha.com/buildtool/res/params/";
 
 	/** REST resource accessor instance */
-	private RestResourceAccessor req = null;
+	private RestResourceAccessor reqJobs = null;
+    private RestResourceAccessor reqParams = null;
 
     private SharedPreferences preferences = null;
 
     @Override
 	public void onCreate() {
-        req = new RestResourceAccessor(URL + getUnitId());
-        // set general HTTP request parameters (just an example)
-    	req.getWebRequest().setParam("max", "255");
+        reqJobs   = new RestResourceAccessor(URL_JOBS   + getUnitId());
+        reqParams = new RestResourceAccessor(URL_PARAMS + getUnitId());
 	}
 
-	/**
-	 * Returns the sample REST resource accessor that can be used
-	 * to read, update and delete entities of the SampleEntity type
-	 * from the server.
-	 * @return the REST resource accessor
-	 */
-	public RestResourceAccessor getRestAccessor() {
-		return req;
+	public RestResourceAccessor getRestAccessorJobs() {
+		return reqJobs;
 	}
+
+    public RestResourceAccessor getRestAccessorParams() {
+        return reqParams;
+    }
 
     public SharedPreferences getPreferences() {
         if (preferences == null) {
@@ -50,6 +48,7 @@ public class Application extends android.app.Application {
 
     public void setUnitId(String unitId) {
         getPreferences().edit().putString("unitId", unitId).commit();
-        req.setBaseUrl(URL + unitId);
+        reqJobs.setBaseUrl(URL_JOBS + unitId);
+        reqParams.setBaseUrl(URL_PARAMS + unitId);
     }
 }

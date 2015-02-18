@@ -33,6 +33,7 @@ import com.wincor.bcon.framework.android.util.AsyncUITask;
 import com.wincor.bcon.framework.android.util.RestResourceAccessor;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.text.DateFormat;
@@ -50,6 +51,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
 
     /** Holds the list's data */
     private ArrayAdapter<JSONObject> data = null;
+    private ArrayAdapter<String> dataStartMenu = null;
 
     /** Holds the list view UI element */
     private ListView mMainList = null;
@@ -160,9 +162,8 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
 
         mDrawerList = (ListView) findViewById(R.id.left_drawer_list);
 
-        String[] items = getResources().getStringArray(R.array.drawer_items);
         // Set the adapter for the list view
-        mDrawerList.setAdapter(new ArrayAdapter<String>(this, R.layout.drawer_list_item, items) {
+        mDrawerList.setAdapter(this.dataStartMenu = new ArrayAdapter<String>(this, R.layout.drawer_list_item) {
             @Override
             public View getView(int position, View convertView, ViewGroup viewGroup) {
                 if (convertView == null) {
@@ -176,7 +177,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
                 }
 
                 TextView title = null;
-                String label = getResources().getStringArray(R.array.drawer_items)[position];
+                String label = getItem(position);
                 if (getItemViewType(position) == 0) {
                     title = (TextView) convertView;
                 } else {
@@ -195,7 +196,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
 
             @Override
             public int getItemViewType(int position) {
-                return getResources().getStringArray(R.array.drawer_items)[position].startsWith("-") ? 1 : 0;
+                return getItem(position).startsWith("-") ? 1 : 0;
             }
 
             @Override
@@ -207,7 +208,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
         mDrawerList.setOnItemClickListener(new ListView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView parent, View view, int position, long id) {
-                new TaskStarter(getResources().getStringArray(R.array.drawer_items)[position], position).go(getString(R.string.loading));
+                new TaskStarter(MainActivity.this.dataStartMenu.getItem(position), position).go(getString(R.string.loading));
             }
         });
 
@@ -279,6 +280,9 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
             return true;
         } else if (id == R.id.action_refresh) {
             refresh(false);
+            return true;
+        } else if (id == R.id.action_clearlist) {
+            new TaskListClear().go(getString(R.string.loading));
             return true;
         }
 
@@ -354,27 +358,43 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
             return LIST_DATE_FORMATTER_LONG.format(itemTime.getTime());
     }
 
+    protected static class DataLoaderResult
+    {
+        public JSONArray listDataResult = null;  // main list data
+        public String listDataMenuResult = null; // start menu data
+    }
+
     /**
      * Inner class used for asynchronous loading of data from the server.
      */
-    protected class DataLoader extends AsyncUITask<JSONArray>
+    protected class DataLoader extends AsyncUITask<DataLoaderResult>
     {
         private final Handler handler = new Handler();
 
         public DataLoader() { super(MainActivity.this); }
 
         @Override
-        public JSONArray doTask() throws Throwable
+        public DataLoaderResult doTask() throws Throwable
         {
-            return ((Application)getApplication()).getRestAccessor().getItems();
+            DataLoaderResult result = new DataLoaderResult();
+            result.listDataResult = ((Application)getApplication()).getRestAccessorJobs().getItems();
+            try {
+                result.listDataMenuResult = ((Application) getApplication()).getRestAccessorParams().getItem("jobs").optString("value");
+            } catch (Exception e) {
+                result.listDataMenuResult = null; // don't bother if job list not defined on server
+            }
+            return result;
         }
 
         @Override
-        public void doneOk(JSONArray result) {
+        public void doneOk(DataLoaderResult result) {
+
+            // ----- main list -----
+
             data.clear();
             boolean allDone = true;
-            for (int i=0; i<result.length(); i++) {
-                JSONObject job = result.optJSONObject(i);
+            for (int i=0; i<result.listDataResult.length(); i++) {
+                JSONObject job = result.listDataResult.optJSONObject(i);
                 data.add(job);
                 if (!isJobDone(job)) allDone = false;
             }
@@ -398,6 +418,16 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
                 spinningRefreshView.clearAnimation();
                 refreshMenuItem.setActionView(null);
             }
+
+            // ----- start menu list -----
+
+            dataStartMenu.clear();
+            try {
+                JSONArray arr = new JSONArray(result.listDataMenuResult);
+                for (int i=0; i<arr.length(); i++) dataStartMenu.add(arr.optString(i));
+            } catch (Exception e) {
+                dataStartMenu.addAll(getResources().getStringArray(R.array.drawer_items));
+            }
         }
 
         @Override
@@ -408,7 +438,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
     }
 
     /**
-     * Settings of pending tasks
+     * Setting of new pending tasks
      */
     protected class TaskStarter extends AsyncUITask<JSONObject>
     {
@@ -424,7 +454,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
         @Override
         public JSONObject doTask() throws Throwable
         {
-            RestResourceAccessor acc = ((Application)getApplication()).getRestAccessor();
+            RestResourceAccessor acc = ((Application)getApplication()).getRestAccessorJobs();
             acc.getWebRequest().setParam("set", "pending");
             return acc.getItem(task.replace(" ", "%20"));
         }
@@ -444,7 +474,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
     }
 
     /**
-     * Settings of pending tasks
+     * Deleting a single task entry from server
      */
     protected class TaskDeleter extends AsyncUITask<String>
     {
@@ -458,8 +488,37 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
         @Override
         public String doTask() throws Throwable
         {
-            RestResourceAccessor acc = ((Application)getApplication()).getRestAccessor();
+            RestResourceAccessor acc = ((Application)getApplication()).getRestAccessorJobs();
             acc.deleteItem(task.replace(" ", "%20"));
+            return "Deleted";
+        }
+
+        @Override
+        public void doneOk(String result) {
+            refresh();
+        }
+
+        @Override
+        public void doneFail(Throwable throwable) {
+            throwable.printStackTrace();
+            Toast.makeText(getApplicationContext(), throwable.toString(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    /**
+     * Deleting of all tasks on the server
+     */
+    protected class TaskListClear extends AsyncUITask<String>
+    {
+        public TaskListClear() {
+            super(MainActivity.this);
+        }
+
+        @Override
+        public String doTask() throws Throwable
+        {
+            RestResourceAccessor acc = ((Application)getApplication()).getRestAccessorJobs();
+            acc.deleteItem(""); // deletes all entries
             return "Deleted";
         }
 
