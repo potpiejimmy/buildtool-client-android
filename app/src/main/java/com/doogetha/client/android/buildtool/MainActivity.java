@@ -325,6 +325,9 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
     public boolean onContextItemSelected(MenuItem item) {
         AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
         switch (item.getItemId()) {
+            case R.id.action_restart:
+                new TaskStarter(data.getItem(info.position).optString("name"), -1).go(getString(R.string.loading));
+                return true;
             case R.id.action_delete:
                 new TaskDeleter(data.getItem(info.position).optString("name")).go(getString(R.string.loading));
                 return true;
@@ -461,8 +464,10 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
 
         @Override
         public void doneOk(JSONObject result) {
-            mDrawerList.setItemChecked(position, false);
-            mDrawerLayout.closeDrawer(mDrawer);
+            if (position>=0) {
+                mDrawerList.setItemChecked(position, false);
+                mDrawerLayout.closeDrawer(mDrawer);
+            }
             refresh();
         }
 
