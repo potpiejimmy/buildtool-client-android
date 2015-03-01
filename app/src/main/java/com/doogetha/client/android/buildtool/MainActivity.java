@@ -33,15 +33,11 @@ import com.wincor.bcon.framework.android.util.AsyncUITask;
 import com.wincor.bcon.framework.android.util.RestResourceAccessor;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Date;
-import java.util.Timer;
-import java.util.TimerTask;
 
 
 public class MainActivity extends ActionBarActivity implements AdapterView.OnItemClickListener {
@@ -63,7 +59,6 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
     private MenuItem refreshMenuItem = null;
     private ImageView spinningRefreshView = null;
     private Animation spinningRefreshAnim = null;
-    private boolean isAutoRefreshTimerRunning = false;
 
     /** Inner class used for asynchronous loading of data */
     private DataLoader dataLoader = null;
@@ -292,7 +287,9 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id)
     {
-        //editItem(data.getItem(position));
+        Intent intent = new Intent(getApplicationContext(), ExeLogActivity.class);
+        intent.putExtra("job", data.getItem(position).optString("name"));
+        startActivity(intent);
     }
 
     protected void enterUnitId() {
@@ -367,6 +364,13 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
         public String listDataMenuResult = null; // start menu data
     }
 
+    protected Runnable refreshRunnable = new Runnable() {
+        @Override
+        public void run() {
+            refresh(false);
+        }
+    };
+
     /**
      * Inner class used for asynchronous loading of data from the server.
      */
@@ -402,21 +406,8 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
                 if (!isJobDone(job)) allDone = false;
             }
             if (!allDone) {
-                if (!isAutoRefreshTimerRunning) {
-                    isAutoRefreshTimerRunning = true;
-                    new Timer().schedule(new TimerTask() {
-                        @Override
-                        public void run() {
-                            handler.post(new Runnable() {
-                                @Override
-                                public void run() {
-                                    isAutoRefreshTimerRunning = false;
-                                    refresh(false);
-                                }
-                            });
-                        }
-                    }, 10000);
-                }
+                handler.removeCallbacks(refreshRunnable);
+                handler.postDelayed(refreshRunnable, 10000);
             } else {
                 spinningRefreshView.clearAnimation();
                 refreshMenuItem.setActionView(null);

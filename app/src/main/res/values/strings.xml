@@ -40,4 +40,8 @@
         <item>Deploy KKO</item>
     </string-array>
 
+    <string name="title_activity_exe_log">ExeLogActivity</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
+
 </resources>

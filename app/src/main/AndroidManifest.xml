@@ -2,26 +2,29 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.doogetha.client.android.buildtool" >
 
-    <uses-permission
-        android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
+        android:name=".Application"
         android:allowBackup="true"
         android:icon="@drawable/buildtool_appicon"
-        android:logo="@drawable/buildtool_appicon"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme"
-        android:name="com.doogetha.client.android.buildtool.Application">
-
+        android:logo="@drawable/buildtool_appicon"
+        android:theme="@style/AppTheme" >
         <activity
             android:name=".MainActivity"
-            android:label="@string/app_name"
-            android:configChanges="keyboardHidden|orientation|screenSize">
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+        <activity
+            android:name=".ExeLogActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/title_activity_exe_log"
+            android:theme="@style/FullscreenTheme" >
         </activity>
     </application>
 
