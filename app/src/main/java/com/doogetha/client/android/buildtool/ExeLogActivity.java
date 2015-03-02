@@ -23,6 +23,7 @@ public class ExeLogActivity extends Activity {
     private ScrollView scroller = null;
     private TextView logView = null;
     private WebSocketConnection mWebSocketClient = null;
+    private StringBuilder buffer = new StringBuilder(16384);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,9 +57,16 @@ public class ExeLogActivity extends Activity {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            logView.append(message);
-                            logView.append("\n"); // XXX
-                            scroller.fullScroll(View.FOCUS_DOWN);
+                            buffer.append(message);
+                            buffer.append("\n"); // XXX
+                            logView.setText(buffer.toString());
+                            if (buffer.length() > 15000) buffer.delete(0, buffer.length() - 15000);
+                            scroller.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    scroller.fullScroll(View.FOCUS_DOWN);
+                                }
+                            });
                         }
                     });
                 }

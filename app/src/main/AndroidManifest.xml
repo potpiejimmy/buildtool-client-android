@@ -23,8 +23,7 @@
         <activity
             android:name=".ExeLogActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/title_activity_exe_log"
-            android:theme="@style/FullscreenTheme" >
+            android:label="@string/title_activity_exe_log">
         </activity>
     </application>
 

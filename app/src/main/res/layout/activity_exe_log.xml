@@ -1,6 +1,6 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-    android:layout_height="match_parent" android:background="#0099cc"
+    android:layout_height="match_parent" android:background="#000"
     tools:context="com.doogetha.client.android.buildtool.ExeLogActivity">
 
     <!-- The primary full-screen view. This can be replaced with whatever view
@@ -10,18 +10,22 @@
         android:id="@+id/logScroller"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:scrollbars="vertical|horizontal"
-        android:layout_marginLeft="3dp"
-        android:layout_marginTop="48dp">
-        <TextView android:id="@+id/logView"
-            android:layout_width="wrap_content"
+        android:scrollbars="vertical"
+        android:layout_margin="5dp">
+        <HorizontalScrollView
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:keepScreenOn="true"
-            android:textColor="#FFF"
-            android:ellipsize="none"
-            android:clickable="false"
-            android:textStyle="bold" android:textSize="12sp"
-            android:text="" />
+            android:scrollbars="horizontal">
+            <TextView android:id="@+id/logView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:keepScreenOn="true"
+                android:textColor="#0f0"
+                android:ellipsize="none"
+                android:clickable="false"
+                android:textStyle="bold" android:textSize="14sp"
+                android:text="" />
+        </HorizontalScrollView>
     </ScrollView>
 
     <!-- This FrameLayout insets its children based on system windows using
