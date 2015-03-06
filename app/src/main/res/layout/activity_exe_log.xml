@@ -1,6 +1,6 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-    android:layout_height="match_parent" android:background="#000"
+    android:layout_height="match_parent" android:background="#07f"
     tools:context="com.doogetha.client.android.buildtool.ExeLogActivity">
 
     <!-- The primary full-screen view. This can be replaced with whatever view
@@ -20,11 +20,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:keepScreenOn="true"
-                android:textColor="#0f0"
+                android:textColor="#fff"
+                android:fontFamily="monospace"
                 android:ellipsize="none"
                 android:clickable="false"
-                android:textStyle="bold" android:textSize="14sp"
-                android:text="" />
+                android:textSize="11sp"
+                android:text="@string/connecting" />
         </HorizontalScrollView>
     </ScrollView>
 

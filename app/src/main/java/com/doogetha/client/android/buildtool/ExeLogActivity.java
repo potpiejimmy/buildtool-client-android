@@ -23,7 +23,7 @@ public class ExeLogActivity extends Activity {
     private ScrollView scroller = null;
     private TextView logView = null;
     private WebSocketConnection mWebSocketClient = null;
-    private StringBuilder buffer = new StringBuilder(16384);
+    private StringBuilder buffer = new StringBuilder(12288);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +49,12 @@ public class ExeLogActivity extends Activity {
                 @Override
                 public void onOpen() {
                     Log.i("Websocket", "Opened");
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            logView.setText("Connected.");
+                        }
+                    });
                 }
 
                 @Override
@@ -60,7 +66,7 @@ public class ExeLogActivity extends Activity {
                             buffer.append(message);
                             buffer.append("\n"); // XXX
                             logView.setText(buffer.toString());
-                            if (buffer.length() > 15000) buffer.delete(0, buffer.length() - 15000);
+                            if (buffer.length() > 10000) buffer.delete(0, buffer.length() - 10000);
                             scroller.post(new Runnable() {
                                 @Override
                                 public void run() {
@@ -74,6 +80,12 @@ public class ExeLogActivity extends Activity {
                 @Override
                 public void onClose(int i, String s) {
                     Log.i("Websocket", "Closed " + s);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            logView.setText("Disconnected.");
+                        }
+                    });
                 }
             });
 
