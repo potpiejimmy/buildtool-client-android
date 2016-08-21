@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.doogetha.client.android.buildtool" >
+    package="com.doogetha.client.android.buildtool">
 
     <uses-permission android:name="android.permission.INTERNET" />
 
@@ -9,21 +9,17 @@
         android:allowBackup="true"
         android:icon="@drawable/buildtool_appicon"
         android:label="@string/app_name"
-        android:logo="@drawable/buildtool_appicon"
-        android:theme="@style/AppTheme" >
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
         <activity
             android:name=".MainActivity"
-            android:configChanges="keyboardHidden|orientation|screenSize"
-            android:label="@string/app_name" >
+            android:label="@string/app_name"
+            android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
-        <activity
-            android:name=".ExeLogActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/title_activity_exe_log">
         </activity>
     </application>
 

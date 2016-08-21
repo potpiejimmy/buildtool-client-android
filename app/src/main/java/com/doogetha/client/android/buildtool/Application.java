@@ -2,7 +2,7 @@ package com.doogetha.client.android.buildtool;
 
 import android.content.SharedPreferences;
 
-import com.wincor.bcon.framework.android.util.RestResourceAccessor;
+import com.wincor.bcon.framework.android.util.VolleyUtil;
 
 /**
  * Main application class for the android application. Note that this class 
@@ -15,25 +15,13 @@ public class Application extends android.app.Application {
 	public final static String URL_JOBS   = "http://www.doogetha.com/buildtool/res/jobs/";
     public final static String URL_PARAMS = "http://www.doogetha.com/buildtool/res/params/";
 
-	/** REST resource accessor instance */
-	private RestResourceAccessor reqJobs = null;
-    private RestResourceAccessor reqParams = null;
-
     private SharedPreferences preferences = null;
 
     @Override
 	public void onCreate() {
-        reqJobs   = new RestResourceAccessor(URL_JOBS   + getUnitId());
-        reqParams = new RestResourceAccessor(URL_PARAMS + getUnitId());
+        super.onCreate();
+        VolleyUtil.initializeContext(this);
 	}
-
-	public RestResourceAccessor getRestAccessorJobs() {
-		return reqJobs;
-	}
-
-    public RestResourceAccessor getRestAccessorParams() {
-        return reqParams;
-    }
 
     public SharedPreferences getPreferences() {
         if (preferences == null) {
@@ -48,7 +36,5 @@ public class Application extends android.app.Application {
 
     public void setUnitId(String unitId) {
         getPreferences().edit().putString("unitId", unitId).commit();
-        reqJobs.setBaseUrl(URL_JOBS + unitId);
-        reqParams.setBaseUrl(URL_PARAMS + unitId);
     }
 }
