@@ -59,6 +59,8 @@ public class MainActivity extends AppCompatActivity
     /** Holds the list view UI element */
     private ListView mMainList = null;
 
+    long mLastWaitForChangeRequest = 0L;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -298,10 +300,12 @@ public class MainActivity extends AppCompatActivity
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        waitForChangesElapsed();
+                        if (System.currentTimeMillis() - mLastWaitForChangeRequest > 1000)
+                            waitForChangesElapsed();
                     }
                 });
         req.setRetryPolicy(new DefaultRetryPolicy(60000, 0, 0.0f));
+        mLastWaitForChangeRequest = System.currentTimeMillis();
         VolleyUtil.getRequestQueue().add(req);
     }
 
