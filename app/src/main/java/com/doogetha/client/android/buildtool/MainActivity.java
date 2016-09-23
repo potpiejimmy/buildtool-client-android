@@ -36,6 +36,7 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.JsonRequest;
 import com.wincor.bcon.framework.android.util.VolleyUtil;
 
 import org.json.JSONArray;
@@ -60,6 +61,8 @@ public class MainActivity extends AppCompatActivity
     private ListView mMainList = null;
 
     long mLastWaitForChangeRequest = 0L;
+    boolean mWaitForChangesRunning = false;
+    boolean mWaitForChangesInterrupted = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,6 +91,24 @@ public class MainActivity extends AppCompatActivity
         mStartMenu.setNavigationItemSelectedListener(this);
 
         setupMainList();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();  // Always call the superclass method first
+        
+        // if waiting for changes process was running earlier and has been interrupted,
+        // use the onResume callback to re-activate it
+        if (mWaitForChangesInterrupted) waitForChangesElapsed();
+    }
+
+    @Override
+    protected void onStop () {
+        super.onStop();
+
+        // cancel all pending requests
+        VolleyUtil.getRequestQueue().cancelAll(this);
+        if (mWaitForChangesRunning) mWaitForChangesInterrupted = true;
     }
 
     protected void setupMainList() {
@@ -222,6 +243,7 @@ public class MainActivity extends AppCompatActivity
         if (unitId == null || unitId.length() == 0) {
             enterUnitId();
         } else {
+            mWaitForChangesRunning = true;
             waitForChanges();
             reload();
         }
@@ -280,6 +302,11 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    protected void sendRequest(JsonRequest<?> req) {
+        req.setTag(this);
+        VolleyUtil.getRequestQueue().add(req);
+    }
+
     protected void waitForChangesElapsed() {
         Log.d(MainActivity.class.getName(), "XXX Change notify");
         waitForChanges();
@@ -302,16 +329,18 @@ public class MainActivity extends AppCompatActivity
                     public void onErrorResponse(VolleyError error) {
                         if (System.currentTimeMillis() - mLastWaitForChangeRequest > 1000)
                             waitForChangesElapsed();
+                        else
+                        	mWaitForChangesInterrupted = true;
                     }
                 });
         req.setRetryPolicy(new DefaultRetryPolicy(60000, 0, 0.0f));
         mLastWaitForChangeRequest = System.currentTimeMillis();
-        VolleyUtil.getRequestQueue().add(req);
+        sendRequest(req);
     }
 
     protected void reload() {
         // job list
-        JsonArrayRequest req = new JsonArrayRequest(Request.Method.GET,
+        sendRequest(new JsonArrayRequest(Request.Method.GET,
                 Application.URL_JOBS + getApp().getUnitId(),
                 null,
                 new Response.Listener<JSONArray>() {
@@ -320,16 +349,11 @@ public class MainActivity extends AppCompatActivity
                         updateItemsMainList(response);
                     }
                 },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Snackbar.make(MainActivity.this.mMainList, error.toString(), Snackbar.LENGTH_LONG).show();
-                    }
-                });
-        VolleyUtil.getRequestQueue().add(req);
+                new DefaultErrorListener()
+        ));
 
         // start menu
-        JsonObjectRequest req2 = new JsonObjectRequest(Request.Method.GET,
+        sendRequest(new JsonObjectRequest(Request.Method.GET,
                 Application.URL_PARAMS + getApp().getUnitId() + "/jobs",
                 null,
                 new Response.Listener<JSONObject>() {
@@ -338,17 +362,12 @@ public class MainActivity extends AppCompatActivity
                         updateItemsStartMenu(response);
                     }
                 },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Snackbar.make(MainActivity.this.mMainList, error.toString(), Snackbar.LENGTH_LONG).show();
-                    }
-                });
-        VolleyUtil.getRequestQueue().add(req2);
+                new DefaultErrorListener()
+        ));
     }
 
     protected void startTask(String task) {
-        JsonObjectRequest req = new JsonObjectRequest(Request.Method.GET,
+        sendRequest(new JsonObjectRequest(Request.Method.GET,
                 Application.URL_JOBS + getApp().getUnitId() + "/" + task.replace(" ", "%20") + "?set=pending",
                 null,
                 new Response.Listener<JSONObject>() {
@@ -357,17 +376,12 @@ public class MainActivity extends AppCompatActivity
                         mDrawer.closeDrawer(GravityCompat.START);
                     }
                 },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Snackbar.make(MainActivity.this.mMainList, error.toString(), Snackbar.LENGTH_LONG).show();
-                    }
-                });
-        VolleyUtil.getRequestQueue().add(req);
+                new DefaultErrorListener()
+        ));
     }
 
     protected void deleteTask(String task) {
-        JsonObjectRequest req = new JsonObjectRequest(Request.Method.DELETE,
+        sendRequest(new JsonObjectRequest(Request.Method.DELETE,
                 Application.URL_JOBS + getApp().getUnitId() + "/" + task.replace(" ", "%20"),
                 null,
                 new Response.Listener<JSONObject>() {
@@ -375,17 +389,12 @@ public class MainActivity extends AppCompatActivity
                     public void onResponse(JSONObject response) {
                     }
                 },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Snackbar.make(MainActivity.this.mMainList, error.toString(), Snackbar.LENGTH_LONG).show();
-                    }
-                });
-        VolleyUtil.getRequestQueue().add(req);
+                new DefaultErrorListener()
+        ));
     }
 
     protected void clearList() {
-        JsonObjectRequest req = new JsonObjectRequest(Request.Method.DELETE,
+        sendRequest(new JsonObjectRequest(Request.Method.DELETE,
                 Application.URL_JOBS + getApp().getUnitId(),
                 null,
                 new Response.Listener<JSONObject>() {
@@ -393,13 +402,8 @@ public class MainActivity extends AppCompatActivity
                     public void onResponse(JSONObject response) {
                     }
                 },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Snackbar.make(MainActivity.this.mMainList, error.toString(), Snackbar.LENGTH_LONG).show();
-                    }
-                });
-        VolleyUtil.getRequestQueue().add(req);
+                new DefaultErrorListener()
+        ));
     }
 
     protected static boolean isJobDone(JSONObject job) {
@@ -417,5 +421,12 @@ public class MainActivity extends AppCompatActivity
             return LIST_DATE_FORMATTER_SHORT.format(itemTime.getTime());
         else
             return LIST_DATE_FORMATTER_LONG.format(itemTime.getTime());
+    }
+
+    public class DefaultErrorListener implements Response.ErrorListener {
+        @Override
+        public void onErrorResponse(VolleyError error) {
+            Snackbar.make(MainActivity.this.mMainList, error.toString(), Snackbar.LENGTH_LONG).show();
+        }
     }
 }
