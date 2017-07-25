@@ -276,7 +276,8 @@ public class MainActivity extends AppCompatActivity
         data.clear();
         for (int i=0; i<result.length(); i++) {
             JSONObject job = result.optJSONObject(i);
-            data.add(job);
+            if (!job.optString("name","").startsWith("BN "))
+                data.add(job);
         }
     }
 
